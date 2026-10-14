@@ -15,118 +15,200 @@ export default function Home() {
   const [selectedStation, setSelectedStation] = useState<string>('');
   const [driverName, setDriverName] = useState<string>('');
   const [bookingMessage, setBookingMessage] = useState<string>('');
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     fetch('/api/stations')
       .then((res) => res.json())
-      .then((data: Station[]) => setStations(data))
-      .catch((err) => console.error('error fetching stations:', err));
+      .then((data: Station[]) => {
+        setStations(data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error('Error fetching stations:', err);
+        setLoading(false);
+      });
   }, []);
 
   const handleBooking = (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedStation || !driverName) {
-      setBookingMessage('please select a station and enter driver name.');
+      setBookingMessage('Kripya station choose karein aur driver name dalein.');
       return;
     }
-    setBookingMessage(`slot booked successfully for ${driverName} at station #${selectedStation}!`);
+    const station = stations.find(s => s.id.toString() === selectedStation);
+    setBookingMessage(`Slot successfully booked for ${driverName} at ${station ? station.name : 'Station'}!`);
     setDriverName('');
     setSelectedStation('');
   };
 
   return (
-    <main className="min-h-screen bg-slate-950 text-white p-8 flex flex-col items-center">
-      <div className="max-w-4xl w-full">
-        <header className="text-center mb-10">
-          <span className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs px-3 py-1 rounded-full font-medium tracking-wide">
-            live network active
+    <div style={{ backgroundColor: '#0b0f19', color: '#ffffff', minHeight: '100vh', padding: '2rem 1rem' }}>
+      <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
+
+        {/* Navigation Bar */}
+        <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '1.5rem', marginBottom: '2.5rem', borderBottom: '1px solid #1f293d' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: 'linear-gradient(135deg, #10b981, #059669)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '1.2rem' }}>
+              ⚡
+            </div>
+            <div>
+              <h1 style={{ fontSize: '1.4rem', fontWeight: 'bold', margin: 0, letterSpacing: '-0.5px' }}>VoltCharge EV</h1>
+              <p style={{ fontSize: '0.8rem', color: '#9ca3af', margin: 0 }}>Smart Charging Network</p>
+            </div>
+          </div>
+          <span style={{ backgroundColor: 'rgba(16, 185, 129, 0.15)', color: '#34d399', border: '1px solid rgba(16, 185, 129, 0.3)', padding: '0.35rem 0.85rem', borderRadius: '9999px', fontSize: '0.8rem', fontWeight: '600' }}>
+            ● Live Network Active
           </span>
-          <h1 className="text-3xl sm:text-4xl font-bold mt-4 mb-2">
-            EV Charging Station Finder
-          </h1>
-          <p className="text-slate-400 text-sm">
-            real-time availability and slot booking across hyderabad region
-          </p>
         </header>
 
-        <section className="mb-10">
-          <h2 className="text-xl font-semibold mb-4 text-slate-200">
-            available stations
+        {/* Hero Banner */}
+        <div style={{ background: 'linear-gradient(180deg, #131b2e 0%, #0d1424 100%)', border: '1px solid #1e293b', borderRadius: '16px', padding: '2.5rem', marginBottom: '3rem', textAlign: 'center', boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.5)' }}>
+          <h2 style={{ fontSize: '2.2rem', fontWeight: '800', marginBottom: '0.75rem', background: 'linear-gradient(to right, #ffffff, #94a3b8)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+            Find & Book EV Chargers Near You
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {stations.map((st) => (
-              <div
-                key={st.id}
-                className="bg-slate-900 border border-slate-800 rounded-lg p-5 shadow-lg flex flex-col justify-between"
-              >
-                <div>
-                  <h3 className="font-bold text-lg text-slate-100">{st.name}</h3>
-                  <p className="text-sm text-slate-400 mt-1">{st.location}</p>
-                </div>
-                <div className="mt-4 pt-4 border-t border-slate-800 flex justify-between items-center text-xs">
-                  <span className="bg-slate-800 text-slate-300 px-2.5 py-1 rounded">
-                    {st.type}
-                  </span>
-                  <span className="text-emerald-400 font-semibold">
-                    {st.slots} slots open
-                  </span>
-                </div>
+          <p style={{ color: '#94a3b8', fontSize: '1rem', maxWidth: '600px', margin: '0 auto 1.5rem' }}>
+            Real-time charging slot availability across Hyderabad region with instant reservation.
+          </p>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '2rem' }}>
+
+          {/* Available Stations List */}
+          <div style={{ gridColumn: 'span 2' }}>
+            <h3 style={{ fontSize: '1.25rem', fontWeight: '700', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <span>🔌</span> Available Charging Stations
+            </h3>
+
+            {loading ? (
+              <p style={{ color: '#94a3b8' }}>Loading station data...</p>
+            ) : stations.length === 0 ? (
+              <div style={{ background: '#111827', padding: '1.5rem', borderRadius: '12px', border: '1px solid #1f2937', color: '#9ca3af' }}>
+                No station data found. Please verify `/api/stations`.
               </div>
-            ))}
-          </div>
-        </section>
-
-        <section className="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-xl max-w-lg mx-auto">
-          <h2 className="text-lg font-bold mb-4 text-slate-100">
-            book a charging slot
-          </h2>
-          <form onSubmit={handleBooking} className="space-y-4">
-            <div>
-              <label className="block text-xs font-medium text-slate-400 mb-1">
-                select station
-              </label>
-              <select
-                value={selectedStation}
-                onChange={(e) => setSelectedStation(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 rounded-md p-2.5 text-sm text-slate-200 focus:outline-none focus:border-blue-500"
-              >
-                <option value="">-- choose a station --</option>
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.25rem' }}>
                 {stations.map((st) => (
-                  <option key={st.id} value={st.id}>
-                    {st.name} ({st.slots} slots)
-                  </option>
+                  <div
+                    key={st.id}
+                    style={{
+                      backgroundColor: '#131c2e',
+                      border: '1px solid #1e293b',
+                      borderRadius: '12px',
+                      padding: '1.25rem',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justify: 'space-between',
+                      boxShadow: '0 4px 6px -1px rgba(0,0,0,0.2)'
+                    }}
+                  >
+                    <div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
+                        <h4 style={{ fontSize: '1.1rem', fontWeight: '600', margin: 0, color: '#f8fafc' }}>{st.name}</h4>
+                      </div>
+                      <p style={{ fontSize: '0.85rem', color: '#94a3b8', margin: '0 0 1rem' }}>📍 {st.location}</p>
+                    </div>
+
+                    <div style={{ paddingTop: '0.85rem', borderTop: '1px solid #1e293b', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ backgroundColor: '#1e293b', color: '#cbd5e1', padding: '0.25rem 0.6rem', borderRadius: '6px', fontSize: '0.75rem', fontWeight: '600' }}>
+                        {st.type}
+                      </span>
+                      <span style={{ color: '#34d399', fontSize: '0.85rem', fontWeight: '700' }}>
+                        ● {st.slots} slots available
+                      </span>
+                    </div>
+                  </div>
                 ))}
-              </select>
+              </div>
+            )}
+          </div>
+
+          {/* Slot Booking Form */}
+          <div>
+            <h3 style={{ fontSize: '1.25rem', fontWeight: '700', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <span>📅</span> Book a Charging Slot
+            </h3>
+
+            <div style={{ backgroundColor: '#131c2e', border: '1px solid #1e293b', borderRadius: '16px', padding: '1.5rem', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.3)' }}>
+              <form onSubmit={handleBooking} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.85rem', color: '#cbd5e1', marginBottom: '0.4rem', fontWeight: '500' }}>
+                    Select Station
+                  </label>
+                  <select
+                    value={selectedStation}
+                    onChange={(e) => setSelectedStation(e.target.value)}
+                    style={{
+                      width: '100%',
+                      backgroundColor: '#0b0f19',
+                      border: '1px solid #334155',
+                      borderRadius: '8px',
+                      padding: '0.75rem',
+                      color: '#f8fafc',
+                      fontSize: '0.9rem',
+                      outline: 'none'
+                    }}
+                  >
+                    <option value="">-- Select a station --</option>
+                    {stations.map((st) => (
+                      <option key={st.id} value={st.id}>
+                        {st.name} ({st.slots} slots open)
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.85rem', color: '#cbd5e1', marginBottom: '0.4rem', fontWeight: '500' }}>
+                    Driver / Vehicle Owner Name
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Rahul Sharma"
+                    value={driverName}
+                    onChange={(e) => setDriverName(e.target.value)}
+                    style={{
+                      width: '100%',
+                      backgroundColor: '#0b0f19',
+                      border: '1px solid #334155',
+                      borderRadius: '8px',
+                      padding: '0.75rem',
+                      color: '#f8fafc',
+                      fontSize: '0.9rem',
+                      outline: 'none'
+                    }}
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  style={{
+                    backgroundColor: '#2563eb',
+                    color: '#ffffff',
+                    fontWeight: '600',
+                    border: 'none',
+                    padding: '0.85rem',
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                    fontSize: '0.95rem',
+                    marginTop: '0.5rem',
+                    transition: 'background-color 0.2s'
+                  }}
+                >
+                  Confirm Reservation
+                </button>
+              </form>
+
+              {bookingMessage && (
+                <div style={{ marginTop: '1.25rem', padding: '0.85rem', borderRadius: '8px', backgroundColor: 'rgba(16, 185, 129, 0.15)', border: '1px solid rgba(16, 185, 129, 0.3)', color: '#34d399', fontSize: '0.85rem', textAlign: 'center', fontWeight: '500' }}>
+                  {bookingMessage}
+                </div>
+              )}
             </div>
+          </div>
 
-            <div>
-              <label className="block text-xs font-medium text-slate-400 mb-1">
-                driver name
-              </label>
-              <input
-                type="text"
-                placeholder="e.g. rahul sharma"
-                value={driverName}
-                onChange={(e) => setDriverName(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 rounded-md p-2.5 text-sm text-slate-200 focus:outline-none focus:border-blue-500"
-              />
-            </div>
-
-            <button
-              type="submit"
-              className="w-full bg-blue-600 hover:bg-blue-500 text-white font-medium py-2.5 rounded-md text-sm transition-colors duration-200 mt-2"
-            >
-              confirm slot booking
-            </button>
-          </form>
-
-          {bookingMessage && (
-            <p className="mt-4 text-center text-sm font-medium text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 py-2 rounded-md">
-              {bookingMessage}
-            </p>
-          )}
-        </section>
+        </div>
       </div>
-    </main>
+    </div>
   );
 }
